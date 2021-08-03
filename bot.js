@@ -1,9 +1,9 @@
-const { Client } = require('discord.js');
+const Discord = require('discord.js');
 const ytdl = require('ytdl-core');
 const search = require('youtube-search');
 const { token, apikey } = require('./token.json');
 const { prefix } = require('./config.json');
-const client = new Client();
+const client = new Discord.Client();
 
 const opts = {
 	maxResults: 5,
@@ -87,7 +87,7 @@ class Music {
 		if(args.indexOf('http') === -1){
 			search(args, opts, async (err, results) => {
 				if(err) return console.log(err);
-				console.log(results);
+				//console.log(results);
 				musicURL = results[0].link;
 				let title = results[0].title;
 				await msg.channel.send('搜尋結果：'+title);
@@ -155,7 +155,7 @@ class Music {
 	search(msg, keyword){
 		search(keyword, opts, function(err, results) {
 			if(err) return console.log(err);
-			console.log(results);
+			//console.log(results);
 			msg.channel.send('搜尋結果：'+results[0].title);
 		});
 	}
@@ -225,10 +225,14 @@ class Music {
     nowQueue(msg) {
 
         // 如果隊列中有歌曲就顯示
+        let embed = new Discord.MessageEmbed().setColor("#00ffff").setTitle("Queue: ");
         if (this.queue[msg.guild.id] && this.queue[msg.guild.id].length > 0) {
             // 字串處理，將 Object 組成字串
-            const queueString = this.queue[msg.guild.id].map((item, index) => `[${index+1}] ${item.name}`).join();
-            msg.channel.send(queueString);
+            //const queueString = this.queue[msg.guild.id].map((item, index) => `[${index+1}] ${item.name}`).join();
+            for(let i=0; i<this.queue[msg.guild.id].length; i++){
+                embed.addField('['+(i+1)+']', this.queue[msg.guild.id][i].name);
+            }
+            msg.channel.send(embed);
         } else {
             msg.channel.send('目前隊列中沒有歌曲');
         }
