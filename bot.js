@@ -1,7 +1,10 @@
 const Discord = require('discord.js');
 const ytdl = require('ytdl-core');
 const search = require('youtube-search');
-const { token, apikey } = require('./token.json');
+require('dotenv').config();
+const token = process.env.TOKEN;
+const apikey = process.env.apikey;
+//const { token, apikey } = require('./token.json');
 const { prefix } = require('./config.json');
 const client = new Discord.Client();
 
@@ -55,9 +58,9 @@ class Music {
         if (msg.member.voice.channel !== null) {
             // Bot 加入語音頻道
             this.connection[msg.guild.id] = await msg.member.voice.channel.join();
-			await msg.channel.send('機器人加入語音頻道');
+			await msg.channel.send('**機器人加入語音頻道**');
         } else {
-            await msg.channel.send('請先進入語音頻道');
+            await msg.channel.send('**請先進入語音頻道**');
         }
 
     }
@@ -69,13 +72,13 @@ class Music {
 
         // 如果 Bot 還沒加入該語音群的語音頻道
         if (!this.connection[guildID]) {
-            await msg.channel.send(`請先將機器人 ${prefix}join 加入頻道`);
+            await msg.channel.send(`**請先將機器人 ${prefix}join 加入頻道**`);
             return;
         }
 
         // 如果 Bot leave 後又未加入語音頻道
         else if (this.connection[guildID].status === 4) {
-            await msg.channel.send(`請先將機器人 ${prefix}join 重新加入頻道`);
+            await msg.channel.send(`**請先將機器人 ${prefix}join 重新加入頻道**`);
             return;
         }
 		
@@ -84,13 +87,13 @@ class Music {
 		
 		if(args.length === 0) return;
 		
-		if(args.indexOf('http') === -1){
+		if(args.indexOf('https://youtu.be') === -1 && args.indexOf('https://www.youtube.com') === -1){
 			search(args, opts, async (err, results) => {
 				if(err) return console.log(err);
 				//console.log(results);
 				musicURL = results[0].link;
 				let title = results[0].title;
-				await msg.channel.send('搜尋結果：'+title);
+				await msg.channel.send('**搜尋結果：'+title+'**');
 				try {
 					// 取得 YouTube 影片資訊
 					const res = await ytdl.getInfo(musicURL);
@@ -108,7 +111,7 @@ class Music {
 
 					// 如果目前正在播放歌曲就加入隊列，反之則播放歌曲
 					if (this.isPlaying[guildID]) {
-						await msg.channel.send(`歌曲加入隊列：${info.title}`);
+						await msg.channel.send(`**歌曲加入隊列：${info.title}**`);
 					} else {
 						this.isPlaying[guildID] = true;
 						this.playMusic(msg, guildID, this.queue[guildID][0]);
@@ -140,7 +143,7 @@ class Music {
 
 				// 如果目前正在播放歌曲就加入隊列，反之則播放歌曲
 				if (this.isPlaying[guildID]) {
-					await msg.channel.send(`歌曲加入隊列：${info.title}`);
+					await msg.channel.send(`**歌曲加入隊列：${info.title}**`);
 				} else {
 					this.isPlaying[guildID] = true;
 					this.playMusic(msg, guildID, this.queue[guildID][0]);
@@ -156,17 +159,17 @@ class Music {
 		search(keyword, opts, function(err, results) {
 			if(err) return console.log(err);
 			//console.log(results);
-			msg.channel.send('搜尋結果：'+results[0].title);
+			msg.channel.send('**搜尋結果：'+results[0].title+'**');
 		});
 	}
 
     playMusic(msg, guildID, musicInfo) {
 
         // 提示播放音樂
-        msg.channel.send(`播放音樂：${musicInfo.name}`);
+        msg.channel.send(`**播放音樂：${musicInfo.name}**`);
 
         // 播放音樂
-        this.dispatcher[guildID] = this.connection[guildID].play(ytdl(musicInfo.url, { filter: 'audioonly' }));
+        this.dispatcher[guildID] = this.connection[guildID].play(ytdl(musicInfo.url, { quality: 'highestaudio', filter: 'audioonly' }));
 
         // 把音量降 50%，不然第一次容易被機器人的音量嚇到 QQ
         this.dispatcher[guildID].setVolume(this.currentVolume);
@@ -182,7 +185,7 @@ class Music {
                 this.playMusic(msg, guildID, this.queue[guildID][0]);
             } else {
                 this.isPlaying[guildID] = false;
-                msg.channel.send('目前沒有音樂了，請加入音樂 :D');
+                msg.channel.send('**目前沒有音樂了，請加入音樂 :D**');
             }
 
         });
@@ -192,7 +195,7 @@ class Music {
     resume(msg) {
 
         if (this.dispatcher[msg.guild.id]) {
-            msg.channel.send('恢復播放');
+            msg.channel.send('**恢復播放**');
 
             // 恢復播放
             this.dispatcher[msg.guild.id].resume();
@@ -203,7 +206,7 @@ class Music {
     pause(msg) {
 
         if (this.dispatcher[msg.guild.id]) {
-            msg.channel.send('暫停播放');
+            msg.channel.send('**暫停播放**');
 
             // 暫停播放
             this.dispatcher[msg.guild.id].pause();
@@ -214,7 +217,7 @@ class Music {
     skip(msg) {
 
         if (this.dispatcher[msg.guild.id]) {
-            msg.channel.send('跳過目前歌曲');
+            msg.channel.send('**跳過目前歌曲**');
 
             // 跳過歌曲
             this.dispatcher[msg.guild.id].end();
@@ -230,11 +233,11 @@ class Music {
             // 字串處理，將 Object 組成字串
             //const queueString = this.queue[msg.guild.id].map((item, index) => `[${index+1}] ${item.name}`).join();
             for(let i=0; i<this.queue[msg.guild.id].length; i++){
-                embed.addField('['+(i+1)+']', this.queue[msg.guild.id][i].name);
+                embed.addField('['+(i+1)+']', '**'+this.queue[msg.guild.id][i].name+'**');
             }
             msg.channel.send(embed);
         } else {
-            msg.channel.send('目前隊列中沒有歌曲');
+            msg.channel.send('**目前隊列中沒有歌曲**');
         }
 
     }
@@ -256,9 +259,9 @@ class Music {
 
             // 離開頻道
             this.connection[msg.guild.id].disconnect();
-			msg.channel.send('機器人離開語音頻道');
+			msg.channel.send('**機器人離開語音頻道**');
         } else {
-            msg.channel.send('機器人未加入任何頻道');
+            msg.channel.send('**機器人未加入任何頻道**');
         }
 
     }
@@ -272,6 +275,7 @@ client.on('message', async (msg) => {
 	const cmd = args.shift().toLowerCase();
     // 如果發送訊息的地方不是語音群（可能是私人），就 return
     if (!msg.guild) return;
+    if (msg.author.bot) return;
 
     // !!join
     if (cmd === 'join') {
@@ -295,7 +299,7 @@ client.on('message', async (msg) => {
         } else {
 
             // 如果使用者不在任何一個語音頻道
-            msg.reply('你必須先加入語音頻道');
+            msg.reply('**你必須先加入語音頻道**');
         }
     }
 
